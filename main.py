@@ -54,5 +54,5 @@ df_players["years_played"] = pd.to_numeric(df_players["years_played"], errors="c
 df_10yr_vets = df_players[df_players["years_played"] >= 10].copy()
 
 # Save filtered dataset
-df_10yr_vets.to_csv("data/rookie_10yr_vets_2004_2015.csv", index=False)
+df_10yr_vets.to_csv("data/rookie_10yr_vets_2003_2015.csv", index=False)
 print(f"Saved {len(df_10yr_vets)} players with 10+ seasons.")

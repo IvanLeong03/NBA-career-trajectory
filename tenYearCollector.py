@@ -6,13 +6,13 @@ import random
 
 # Load player list
 df_players = pd.read_csv("data/rookie_10yr_vets_2004_2015.csv")
-# df_players = df_players.iloc[:3]  
+#df_players = df_players.iloc[:3]  
 # Limit for testing 
 
 headers = {"User-Agent": "Mozilla/5.0"}
 output = []
 
-BASE_STATS = ["pts_per_g", "ast_per_g", "trb_per_g", "stl_per_g", "blk_per_g", "mp_per_g", "games_started"]
+BASE_STATS = ["pts_per_g", "ast_per_g", "trb_per_g", "stl_per_g", "blk_per_g", "mp_per_g"]
 ADV_STATS = ["per", "ts_pct", "usg_pct", "ws", "bpm"]  # Add more if desired
 
 def extract_table(soup, table_id):
@@ -86,6 +86,24 @@ for i, row in df_players.iterrows():
                 key = f"Y{season_num}_{stat}"
                 player_data[key] = float(td.text) if td and td.text.strip() != '' else None
 
+            # Awards extraction
+            awards_td = tr.find("td", {"data-stat": "awards"})
+            awards_list = []
+
+            if awards_td:
+                for a in awards_td.find_all("a"):
+                    text = a.text.strip()
+                    awards_list.append(text)
+
+            # Optional: store all awards as a single string (or list)
+            player_data[f"Y{season_num}_awards_raw"] = ",".join(awards_list)
+
+            # Example derived features
+            player_data[f"Y{season_num}_is_all_star"] = 1 if "AS" in awards_list else 0
+            player_data[f"Y{season_num}_is_mvp_votes"] = any("MVP" in a for a in awards_list)
+            player_data[f"Y{season_num}_all_nba_team"] = next((a for a in awards_list if "NBA" in a), None)
+
+                        
             # Advanced stats
             for stat in ADV_STATS:
                 td = adv_tr.find("td", {"data-stat": stat})
@@ -101,5 +119,5 @@ for i, row in df_players.iterrows():
 
 # Save to CSV
 df_output = pd.DataFrame(output)
-df_output.to_csv("data/player_10yr_stats.csv", index=False)
+df_output.to_csv("data/all_player_10yr_stats.csv", index=False)
 print(f"\nDone. Saved {len(df_output)} players with 10 seasons.")
